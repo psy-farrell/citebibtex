@@ -1,3 +1,11 @@
+# Fork of CiteBibtex
+
+This is a fork of the [CiteBibtex](https://sublime.wbond.net/packages/CiteBibtex) package for inserting bibtex references in markdown/LaTeX files. This fork gives the ability to insert references outside of parentheses (replacing with et al if the reference has already been cited earlier in the file), and additional as a possessive, such as "Smith et al.'s (2014)".
+
+To make this work, you'll need to assign key bindings to the alternate forms. They call the same function, but with a different argument `cform` (taking on values "author" and "posses" respectively).
+
+The rest of this README is from the original CiteBibtex package.
+
 # CiteBibtex
 
 A Sublime Text plugin to effortlessly insert citations from BibTeX into texts written in Pandoc or LaTeX.

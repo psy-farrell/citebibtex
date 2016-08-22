@@ -164,10 +164,10 @@ class CiteBibtex(object):
         ref_source = self.current_ref_source
         window.show_quick_panel(self.refs[ref_source], self.insert_ref)
 
-    def show_selector(self, selector_callback=None):
+    def show_selector(self, selector_callback=None, cform="wawa"):
 
         if selector_callback is None:
-            selector_callback = self.insert_ref
+            selector_callback = lambda x: self.insert_ref(x, cform)
 
         # Don't do anything if this is repeatedly called during an update,
         # until BibTeX file is completely read
@@ -192,12 +192,38 @@ class CiteBibtex(object):
         else:
             window.show_quick_panel(self.refs[ref_source], selector_callback)
 
-    def insert_ref(self, refid):
+    def insert_ref(self, refid, cform):
+        
         if refid == -1:  # Don't do anything if nothing was selected
             return None
         ref_key = self.ref_keys[self.current_ref_source][refid]
-        citation = self.get_citation_style().replace('$CITATION', ref_key)
+
         view = sublime.active_window().active_view()
+        if cform=="none":
+            citation = self.get_citation_style().replace('$CITATION', ref_key)
+        else:
+            authstr = self.refs[self.current_ref_source][refid][1]
+            autharray = authstr.split('|')[1].split(',')
+            autharray = [a.strip(' ') for a in autharray]
+            if len(autharray) > 2:
+                authors = autharray[0] + " et al."
+                longauthors = ', '.join(autharray[0:-1])
+                longauthors = longauthors + ', and ' + autharray[-1]
+            else:
+                authors = ' and '.join(autharray)
+                longauthors = authors
+            pastText = view.substr(sublime.Region(0, view.sel()[0].b))
+            if cform=="possess":
+                if not '@' + ref_key in pastText:
+                    citation = longauthors + "'s [-@" + ref_key + "]"
+                else:
+                    citation = authors + "'s [-@" + ref_key + "]"
+            elif cform=="author":
+                if not '@' + ref_key in pastText:
+                    citation = longauthors + " [-@" + ref_key + "]"
+                else:
+                    citation = authors + " [-@" + ref_key + "]"
+        
         view.run_command('insert_reference', {'reference': citation})
 
     def insert_citation(self, refid):
@@ -235,7 +261,7 @@ class CiteBibtex(object):
 
 class CiteBibtexShowReferenceSelectorCommand(sublime_plugin.ApplicationCommand):
     def run(self, **kwargs):
-        _sublimebibtex.show_selector()
+        _sublimebibtex.show_selector(cform=kwargs['cform'])
 
 
 class CiteBibtexShowCitationSelectorCommand(sublime_plugin.ApplicationCommand):
